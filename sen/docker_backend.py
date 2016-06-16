@@ -315,7 +315,11 @@ class DockerImage(DockerObject):
 
     @property
     def command(self):
-        cmd = graceful_chain_get(self.inspect(cached=True).response, "Config", "Cmd")
+        try:
+            cmd = graceful_chain_get(self.inspect(cached=True).response, "Config", "Cmd")
+        except docker.errors.NotFound:
+            logger.warning("image %s is not available anymore", self.image_id)
+            raise NotAvailableAnymore()
         if cmd:
             return " ".join(cmd)
         return ""
